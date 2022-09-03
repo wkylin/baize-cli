@@ -1,9 +1,9 @@
 // This question would be shown at the starting
 const questions = [
     {
-        type: 'input',
+        type: 'text',
         name: 'projectName',
-        message: 'Input project name'
+        message: 'Enter your project name:'
     },
     {
         type: 'list', // checkbox confirm editor expand input list number password rawlist
