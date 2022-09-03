@@ -1,5 +1,5 @@
 const links = new Map([
-    ['React', 'https://github.com/wkylin/pro-react-admin'],
+  ['React', 'https://github.com/wkylin/pro-react-admin'],
 ]);
 
 // module.exports = links;

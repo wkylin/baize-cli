@@ -19,24 +19,24 @@ import questions from './utils/questions.js'
 import links from './utils/links.js'
 
 inquirer.prompt(questions).then((answers) => {
-    // Use user feedback for... whatever!!
-    if (answers.framework === 'React') {
-        shell.exec(`mkdir ${answers.projectName}`);
-        console.log(chalk.green('📁 Created a folder for the project'));
-        shell.exec(`git clone ${links.get('React')} ${answers.projectName}`);
-        console.log(
-            chalk.green(`🖨️  Cloned started files into ${answers.projectName}`)
-        );
-        shell.cd(`${path}/${answers.projectName}`);
-        shell.exec(`npm i`);
-        console.log(
-            chalk.green(
-                '👨‍💻 Successfully installed all the required dependencies\nHappy hacking 🚀'
-            )
-        );
-    } else {
-        console.log(
-            '👨‍💻 Coming soon... 🚀'
-        );
-    }
+  // Use user feedback for... whatever!!
+  if (answers.framework === 'React') {
+    shell.exec(`mkdir ${answers.projectName}`);
+    console.log(chalk.green('📁 Created a folder for the project'));
+    shell.exec(`git clone ${links.get('React')} ${answers.projectName}`);
+    console.log(
+      chalk.green(`🖨️  Cloned started files into ${answers.projectName}`)
+    );
+    shell.cd(`${path}/${answers.projectName}`);
+    shell.exec(`npm i`);
+    console.log(
+      chalk.green(
+        '👨‍💻 Successfully installed all the required dependencies\nHappy hacking 🚀'
+      )
+    );
+  } else {
+    console.log(
+      '👨‍💻 Coming soon... 🚀'
+    );
+  }
 });
