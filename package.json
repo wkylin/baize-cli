@@ -1,0 +1,27 @@
+{
+  "name": "baize-cli",
+  "version": "1.0.0",
+  "description": "白泽--上古神兽",
+  "type": "module",
+  "main": "./bin/index.js",
+  "bin": {
+    "baize": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react",
+    "cli",
+    "admin",
+    "typescript",
+    "baize"
+  ],
+  "author": "wkylin.w",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.0.1",
+    "inquirer": "^9.1.1",
+    "shelljs": "^0.8.5"
+  }
+}
