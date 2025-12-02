@@ -3,12 +3,17 @@
   "version": "1.1.0",
   "description": "React 项目脚手架...",
   "type": "module",
-  "main": "./bin/index.js",
+  "main": "src/index.js",
   "bin": {
     "baize": "./bin/index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bin/index.js",
+    "lint": "eslint src/ test/",
+    "lint:fix": "eslint src/ test/ --fix",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "test": "jest",
+    "release": "standard-version"
   },
   "keywords": [
     "react",
@@ -20,9 +25,17 @@
   "author": "wkylin.w",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^5.0.1",
-    "inquirer": "^9.1.1",
+    "chalk": "^5.3.0",
+    "commander": "^14.0.2",
+    "inquirer": "^9.2.0",
     "shelljs": "^0.8.5"
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.0",
+    "standard-version": "^9.5.0"
   },
   "repository": {
     "type": "git",
