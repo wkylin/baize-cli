@@ -1,6 +1,6 @@
 {
   "name": "baize-cli",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "React 项目脚手架...",
   "type": "module",
   "main": "src/index.js",
@@ -12,7 +12,7 @@
     "lint": "eslint src/ test/",
     "lint:fix": "eslint src/ test/ --fix",
     "format": "prettier --write \"**/*.{js,json,md}\"",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "release": "standard-version"
   },
   "keywords": [
