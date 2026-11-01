@@ -1,0 +1,39 @@
+{
+  "name": "baize-vue-reports",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/check-dependencies.mjs",
+    "dev": "vite",
+    "prebuild": "node scripts/check-dependencies.mjs",
+    "build": "vue-tsc --noEmit && vite build",
+    "lint": "oxlint src scripts .storybook && prettier --check \"src/**/*.{ts,vue,css}\" \"scripts/**/*.mjs\" \".storybook/**/*.ts\"",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "quality": "node scripts/quality.mjs",
+    "storybook": "storybook dev -p 6007 --no-open",
+    "build:storybook": "storybook build -o storybook-static",
+    "release": "node scripts/release.mjs"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "vue": "3.5.44"
+  },
+  "devDependencies": {
+    "@module-federation/vite": "1.23.7",
+    "@storybook/vue3": "10.6.5",
+    "@storybook/vue3-vite": "10.6.5",
+    "@types/node": "22.15.30",
+    "@vitejs/plugin-vue": "6.0.10",
+    "oxlint": "1.90.0",
+    "prettier": "3.6.2",
+    "storybook": "10.6.5",
+    "typescript": "5.9.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "vue-tsc": "3.3.14"
+  }
+}

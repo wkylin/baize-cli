@@ -1,0 +1,126 @@
+:root {
+  --boot-bg: #f5f7f9;
+  --boot-surface: #fff;
+  --boot-ink: #183039;
+  --boot-muted: #61757d;
+  --boot-accent: #137c81;
+}
+
+html[data-theme='dark'] {
+  --boot-bg: #10171c;
+  --boot-surface: #1c282e;
+  --boot-ink: #e9f3f2;
+  --boot-muted: #a3b7bc;
+}
+
+#boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--boot-bg);
+  color: var(--boot-ink);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  transition:
+    opacity 220ms ease,
+    visibility 220ms ease;
+}
+
+#boot-splash.is-exiting {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.boot-splash__content {
+  width: min(100%, 320px);
+  text-align: center;
+}
+
+.boot-splash__mark {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--boot-accent) 32%, transparent);
+  border-radius: 8px;
+  background: var(--boot-surface);
+  color: var(--boot-accent);
+  font-size: 24px;
+  font-weight: 750;
+}
+
+.boot-splash__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.boot-splash__status {
+  margin: 9px 0 20px;
+  color: var(--boot-muted);
+  font-size: 13px;
+}
+
+.boot-splash__progress {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--boot-accent) 18%, var(--boot-surface));
+}
+
+.boot-splash__progress::before {
+  content: '';
+  display: block;
+  width: 38%;
+  height: 100%;
+  background: var(--boot-accent);
+  animation: boot-progress 1.3s ease-in-out infinite alternate;
+}
+
+.boot-splash__error[hidden] {
+  display: none;
+}
+
+.boot-splash__error {
+  margin-top: 20px;
+  color: var(--boot-muted);
+  font-size: 13px;
+}
+
+.boot-splash__retry {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--boot-accent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--boot-accent);
+  cursor: pointer;
+}
+
+@keyframes boot-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(270%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #boot-splash {
+    transition: none;
+  }
+  .boot-splash__progress::before {
+    animation: none;
+    width: 100%;
+  }
+}

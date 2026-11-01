@@ -1,119 +1,42 @@
-# 发布与部署指南
+# 发布与部署
 
-本文档记录了 Baize CLI 的本地调试、构建及发布到 npm 的完整流程。
+Baize CLI 自身发布到 npm；CLI 生成的业务工程使用 `release` 产出静态部署文件。两者是不同的发布流程。
 
-## 1. 本地开发与调试
+## 发布 Baize CLI
 
-在发布之前，建议在本地进行全局安装测试，以确保 CLI 工具运行正常。
-
-### 方法 A: 使用 `npm link` (推荐)
-
-`npm link` 会在全局 `node_modules` 中创建一个指向本地项目的软链接。任何代码修改都会立即生效，无需重新安装。
+本地先运行：
 
 ```bash
-# 1. 在项目根目录下建立链接
-npm link
-
-# 2. 验证命令是否生效
-baize -v
-
-# 3. 在任意目录下测试创建项目
-cd ~/Desktop
-baize init
-```
-
-**取消链接：**
-```bash
-npm unlink -g baize-cli
-```
-
-### 方法 B: 本地全局安装
-
-模拟真实用户的安装过程，将当前目录打包并安装到全局。
-
-```bash
-npm install -g .
-```
-
----
-
-## 2. 发布前检查
-
-在发布新版本前，请确保代码质量符合规范。
-
-```bash
-# 1. 运行代码风格检查
+npm install
 npm run lint
-
-# 2. 运行单元测试
-npm run test
+npm test
+npm pack --dry-run
 ```
 
----
+`npm pack` 应只包含 CLI、精简模板、README 和 LICENSE，不应包含模板目录中的 `node_modules`、`dist` 或 Git 历史。可以使用 `npm link` 在本地测试 `baize` 命令，结束后用 `npm unlink -g baize-cli` 取消链接。
 
-## 3. 构建与发布到 npm
-
-### 前置条件
-
-1.  拥有 [npm](https://www.npmjs.com/) 账号。
-2.  在终端登录 npm：
-    ```bash
-    npm login
-    # 按提示输入用户名、密码、邮箱和 OTP
-    ```
-3.  确保 `package.json` 中的 `name` 字段在 npm 上是唯一的（未被占用）。
-
-### 发布流程
-
-本项目使用 `standard-version` 自动化管理版本号和变更日志。
-
-#### 步骤 1: 生成新版本
-
-根据修改内容的类型（Patch/Minor/Major），运行相应的命令：
+发布前更新 `CHANGELOG.md`，确认版本和工作区改动，再执行适当的版本命令：
 
 ```bash
-# 发布补丁版本 (例如: 1.0.0 -> 1.0.1) - 用于 bug 修复
-npm run release
-
-# 发布次版本 (例如: 1.0.0 -> 1.1.0) - 用于新功能
-npm run release -- --release-as minor
-
-# 发布主版本 (例如: 1.0.0 -> 2.0.0) - 用于破坏性更新
-npm run release -- --release-as major
-```
-
-此命令会自动执行以下操作：
-1.  更新 `package.json` 中的版本号。
-2.  更新 `CHANGELOG.md`。
-3.  提交代码并打上 Git Tag。
-
-#### 步骤 2: 推送代码到仓库
-
-将代码和标签推送到 GitHub：
-
-```bash
-git push --follow-tags origin main
-```
-
-#### 步骤 3: 发布到 npm
-
-```bash
+npm version patch
+# 或 npm version minor / npm version major
 npm publish
 ```
 
-> **注意**：如果是首次发布 Scoped Package (例如 `@wkylin/baize-cli`)，需要添加访问参数：
-> ```bash
-> npm publish --access public
-> ```
+`npm version` 会更新版本、创建提交和 Git 标签。`npm publish` 需要 npm 账号登录及该包的发布权限；本仓库的生成工程 release 命令不会替你运行它。标签和代码推送应由维护者在检查结果后执行。
 
----
+## 发布生成的应用
 
-## 4. 常用命令速查
+在生成项目根目录运行所选包管理器的命令：
 
-| 命令 | 说明 |
-|Data | Description |
-| `npm link` | 本地软链调试 |
-| `npm run lint` | 代码检查 |
-| `npm run test` | 运行测试 |
-| `npm run release` | 生成新版本 (Patch) |
-| `npm publish` | 发布到 npm |
+```bash
+pnpm install
+pnpm run quality
+pnpm run release
+```
+
+选择 npm 的项目使用 `npm`。`release` 会再次执行 lint、类型检查、Vitest 与生产构建，然后创建 `release/<package.json version>/manifest.json` 和各应用的静态输出目录。单项目目录名是包名；多项目和微前端目录名是 `admin`、`operations` 或 `reports`、`shell` 等应用名。
+
+生成项目的 `.github/workflows/ci.yml` 在 push/PR 上运行质量门禁；`release.yml` 在 `v*` 标签上上传 `release/` 为 GitHub Actions artifact。两者都不会自动部署到服务器。建议提交 npm 或 pnpm 锁文件，让 CI 与本地使用同一依赖版本。
+
+部署时给每个应用配置浏览器历史路由回退到 `index.html`。微前端需分别部署 shell 与 reports，并在构建 shell 时设置生产 `BAIZE_REMOTE_URL`；远端入口及其资源需允许宿主跨域访问。将演示认证和用户服务换为真实后端后再对外提供业务功能。

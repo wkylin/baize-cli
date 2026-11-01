@@ -1,0 +1,81 @@
+.remote-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 20px 0;
+  color: #21313a;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+.remote-page__eyebrow {
+  margin: 0 0 8px;
+  color: #137c81;
+  font-size: 10px;
+  font-weight: 750;
+}
+.remote-page__header h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.3;
+}
+.remote-page__header > p:last-child {
+  margin: 8px 0 28px;
+  color: #566670;
+  font-size: 13px;
+}
+.remote-page__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #e3e9ec;
+  border-radius: 6px;
+  background: #fff;
+}
+.remote-page__metrics > div {
+  min-height: 135px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 30px;
+}
+.remote-page__metrics > div + div {
+  border-left: 1px solid #e3e9ec;
+}
+.remote-page__metrics span {
+  color: #566670;
+  font-size: 12px;
+}
+.remote-page__metrics strong {
+  margin-top: 6px;
+  font-size: 32px;
+  font-variant-numeric: tabular-nums;
+}
+html[data-theme='dark'] .remote-page {
+  color: #e6edef;
+}
+html[data-theme='dark'] .remote-page__header > p:last-child,
+html[data-theme='dark'] .remote-page__metrics span {
+  color: #b1c0c6;
+}
+html[data-theme='dark'] .remote-page__metrics {
+  border-color: #334149;
+  background: #1d262d;
+}
+html[data-theme='dark'] .remote-page__metrics > div + div {
+  border-color: #334149;
+}
+@media (max-width: 560px) {
+  .remote-page__metrics {
+    grid-template-columns: 1fr;
+  }
+  .remote-page__metrics > div {
+    min-height: 94px;
+    padding: 16px 20px;
+  }
+  .remote-page__metrics > div + div {
+    border-left: 0;
+    border-top: 1px solid #e3e9ec;
+  }
+}

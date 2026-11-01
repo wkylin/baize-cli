@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f7f9" />
+    <link rel="stylesheet" href="/boot-splash.css" />
+    <title>__PROJECT_TITLE__</title>
+  </head>
+  <body>
+    <div id="boot-splash" role="status" aria-live="polite">
+      <div class="boot-splash__content">
+        <div class="boot-splash__mark" aria-hidden="true">__PROJECT_MARK__</div>
+        <h1 class="boot-splash__title">__PROJECT_TITLE__</h1>
+        <p class="boot-splash__status">正在打开工作区...</p>
+        <div class="boot-splash__progress" aria-hidden="true"></div>
+        <div class="boot-splash__error" hidden>
+          <span>加载时间过长，请检查网络后重试。</span><br />
+          <button
+            class="boot-splash__retry"
+            type="button"
+            onclick="location.reload()"
+          >
+            重试
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script>
+      window.setTimeout(function () {
+        var splash = document.getElementById('boot-splash');
+        if (splash) splash.querySelector('.boot-splash__error').hidden = false;
+      }, 12000);
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,78 +1,113 @@
-# 🦄 Baize CLI (白泽)
+# Baize CLI 白泽
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![node](https://img.shields.io/badge/node-%3E%3D16-green.svg)](https://nodejs.org/)
+Baize 是 React / Vue 管理后台项目工具箱。CLI 随 npm 包发布精简模板，在本地组合工程文件，不会克隆 `pro-react-admin` 仓库。新项目可选择技术栈、包管理器和项目形态，再从演示认证与数据服务逐步替换成业务实现。
 
-> **白泽**，中国古代神话中的瑞兽。能言语，通万物之情，知鬼神之事，“王者有德”才出现，能辟除人间一切邪气，可令人逢凶化吉。
->
-> 本项目取名"白泽"，寓意作为开发者的瑞兽，帮助您辟除配置烦恼，逢凶化吉，快速启动高质量项目。
+## 环境与安装
 
-**Baize CLI** 是一个轻量、规范且高效的前端项目脚手架工具，旨在帮助开发者快速搭建基于 React、Vue 等现代框架的标准化项目结构。
-
-## ✨ 特性
-
-- 🚀 **快速启动**：秒级生成项目模板，开箱即用。
-- 🛠 **规范集成**：内置 ESLint、Prettier 等代码规范配置。
-- 📦 **多框架支持**：
-  - [x] React (Vite + TypeScript)
-  - [ ] Vue (Coming soon)
-  - [ ] NextJS (Coming soon)
-- 🎨 **交互友好**：优雅的命令行交互体验。
-
-## 📦 安装
-
-使用 npm 全局安装：
+- Node.js 20.19+；选择 `--wui` 时要求 `^22.22.2 || ^24.15.0 || >=26.0.0`。
+- 默认使用 pnpm 11.8.0，也可选择 npm。请先安装所选包管理器。
 
 ```bash
 npm install -g baize-cli
+baize doctor
+baize create my-admin
+cd my-admin
+pnpm install
+pnpm run dev
 ```
 
-## 🚀 使用
+直接运行 `baize` 或 `baize create` 会进入交互式创建；提供项目名时不会提问，适合脚本和 CI。默认是 **React + pnpm + Vite + 普通单项目**，创建时不联网、不安装依赖，也不会覆盖已有目录。
 
-在终端中运行以下命令启动交互式向导：
+## 创建选项
+
+| 选项                | 可选值                             | 默认值        | 作用                                                      |
+| ------------------- | ---------------------------------- | ------------- | --------------------------------------------------------- |
+| `--template`        | `react-admin`、`vue-admin`         | `react-admin` | React 或 Vue 3 + Pinia 模板                               |
+| `--package-manager` | `pnpm`、`npm`                      | `pnpm`        | 安装、运行和 CI 使用的包管理器                            |
+| `--bundler`         | `vite`、`webpack`                  | `vite`        | 构建器；Webpack 仅适用于 React 模板                       |
+| `--mode`            | `single`、`multi`、`microfrontend` | `single`      | 生成普通项目、多项目工作区或微前端                        |
+| `--wui`             | 开关                               | 关闭          | React 模板加入并安装 `@w.ui/wui-react` 与 `framer-motion` |
+| `--install`         | 开关                               | 关闭          | 创建后安装依赖；`--wui` 会自动启用                        |
+| `--title`           | 文本                               | 从目录名推导  | 项目显示名，最长 40 字符                                  |
 
 ```bash
-baize
+baize create customer-admin --package-manager npm --bundler webpack --title "客户运营"
+baize create enterprise-suite --mode multi
+baize create insight-platform --mode microfrontend --bundler vite
+baize create design-admin --wui
+baize create vue-console --template vue-admin
+baize create vue-suite --template vue-admin --mode multi --package-manager npm
+baize create vue-platform --template vue-admin --mode microfrontend
 ```
 
-按提示输入项目名称并选择框架即可。
+`baize init` 是 `baize create` 的别名。Vue 模板固定使用 Vite，选择 `--bundler webpack` 或 `--wui` 会在创建目录前报错。Vue 应用采用 Vue Router、Pinia、Vue I18n 与 Element Plus。WUI 的 npm 包名是 `@w.ui/wui-react`；它是 React 专用组件库，React 模板会安装基础必需依赖并提供 `WuiCodeInput` 示例和 Storybook story。
 
-## 💻 本地开发
+## 项目形态
 
-如果您想参与本项目开发或进行本地调试：
+| 形态            | 目录                            | 开发端口   | 用途                     |
+| --------------- | ------------------------------- | ---------- | ------------------------ |
+| `single`        | 项目根目录                      | 5173       | 一个独立管理后台         |
+| `multi`         | `apps/admin`、`apps/operations` | 5173、5174 | 多个独立产品，共用根命令 |
+| `microfrontend` | `apps/shell`、`apps/reports`    | 5173、5174 | shell 宿主与独立报表远端 |
 
-1. **克隆仓库**
+多项目中可继续添加应用；端口和 Storybook 端口会递增：
 
-   ```bash
-   git clone https://github.com/wkylin/baize-cli.git
-   cd baize-cli
-   ```
+```bash
+cd enterprise-suite
+baize add project finance --title "财务后台"
+pnpm install
+baize add page ledger --project finance --title "总账"
+```
 
-2. **安装依赖**
+普通项目或工作区应用中可以添加页面：
 
-   ```bash
-   npm install
-   ```
+```bash
+baize add page reports --title "报表"
+```
 
-3. **本地链接**
+React 模板会创建 `src/pages/reports.tsx`，Vue 模板会创建 `src/pages/reports.vue`；两者都会创建 `reports.route.ts` 并更新懒加载路由表。`route.roles` 控制菜单和前端路由访问。微前端的 `reports` 路由由远端提供，不能用同名页面覆盖。
 
-   ```bash
-   npm link
-   ```
+## 生成工程
 
-   现在您可以在本地直接使用 `baize` 命令进行测试。
+所有形态都提供根命令：
 
-4. **代码检查与测试**
+```bash
+pnpm run dev              # 启动应用；工作区同时启动各应用
+pnpm run lint             # Oxlint + Prettier 格式检查
+pnpm run typecheck        # TypeScript 检查
+pnpm run test             # Vitest 单测
+pnpm run quality          # lint、typecheck、test、build
+pnpm run build            # 生产构建
+pnpm run storybook        # 组件开发；工作区使用 6006、6007... 端口
+pnpm run build:storybook  # Storybook 静态文件
+pnpm run release          # 先通过质量门禁，再写入 release/<version>/
+```
 
-   ```bash
-   npm run lint    # 代码风格检查
-   npm test        # 运行单元测试
-   ```
+选择 npm 时将命令中的 `pnpm` 换成 `npm`。生成工程包含 GitHub Actions 质量工作流和 `v*` 标签构建工作流。`release` 只产出可部署文件与 `manifest.json`，不会自动发布到 npm 或部署服务器。
 
-## 🤝 贡献
+React 与 Vue 应用都包括演示登录、角色导航、工作台、用户增删改查、403/404 页面、boot splash、主题/强调色/密度/语言偏好和中英文内置文案。首次启动使用以下演示账号：
 
-欢迎提交 Pull Request 或 Issue！详情请查阅 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+| 角色   | 邮箱               | 密码       |
+| ------ | ------------------ | ---------- |
+| 管理员 | `admin@baize.dev`  | `Demo123!` |
+| 访客   | `viewer@baize.dev` | `Demo123!` |
 
-## 📄 许可证
+演示认证和用户数据保存在浏览器；它们只用于开发界面。接入生产系统时需要替换 `src/services/auth.ts`、`src/services/users.ts`，并在服务端验证身份和权限。生成项目的 README 说明了主题、语言、splash 和微前端部署的修改位置。
 
-[MIT](./LICENSE)
+启动或构建时若提示依赖缺失，在生成工程根目录重新运行所选包管理器的 `install`，然后重启开发服务。工作区应在根目录安装依赖；旧版生成工程若没有声明报错的包，应先更新 `package.json` 或重新生成。新版工程会在启动、构建和质量检查前列出缺失或不完整的直接依赖。
+
+## 开发 CLI
+
+```bash
+npm install
+npm run lint
+npm test
+node bin/index.js create local-demo --package-manager npm
+npm pack --dry-run
+```
+
+设计取舍与 Tavily 检索的开源参考见[项目分析](./docs/PROJECT_ANALYSIS.md)，发布流程见[发布指南](./docs/PUBLISHING.md)。
+
+## License
+
+MIT

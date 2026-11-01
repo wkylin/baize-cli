@@ -7,6 +7,7 @@
 5. Submit a pull request.
 
 ## Development
+
 Run `npm install` to install dependencies.
 Run `npm run lint` to check code style.
 Run `npm test` to run unit tests.

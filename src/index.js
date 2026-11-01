@@ -1,87 +1,195 @@
-import inquirer from 'inquirer';
-import shell from 'shelljs';
-import path from 'path';
+import fs from 'node:fs';
 import { Command } from 'commander';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import questions from './utils/questions.js';
-import { getRepoUrl } from './utils/links.js';
+import inquirer from 'inquirer';
 import logger from './utils/logger.js';
+import { createProject, validateProjectName } from './project/create.js';
+import { addPage } from './project/add-page.js';
+import { addProject } from './project/add-project.js';
+import { listTemplates } from './project/templates.js';
+import { inspectEnvironment } from './project/doctor.js';
+import { normalizeOptions } from './project/options.js';
 
-// 获取 package.json 信息
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8'));
+const packageJson = JSON.parse(
+  fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+);
 
-export async function run() {
+async function projectName(name) {
+  if (name) return name;
+  if (!process.stdin.isTTY)
+    throw new Error('Project name is required in non-interactive mode.');
+  const answer = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'Project name:',
+      validate(input) {
+        try {
+          validateProjectName(input);
+          return fs.existsSync(input) ? 'Destination already exists.' : true;
+        } catch (error) {
+          return error.message;
+        }
+      },
+    },
+  ]);
+  return answer.name;
+}
+
+async function creationInput(name, options = {}) {
+  const actualName = await projectName(name);
+  if (name)
+    return {
+      name: actualName,
+      options: { ...normalizeOptions(options), template: options.template },
+    };
+  const answer = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'template',
+      message: 'Template:',
+      choices: listTemplates().map(({ name, description }) => ({
+        name: `${name} - ${description}`,
+        value: name,
+      })),
+      default: options.template || 'react-admin',
+    },
+    {
+      type: 'list',
+      name: 'packageManager',
+      message: 'Package manager:',
+      choices: ['pnpm', 'npm'],
+      default: options.packageManager || 'pnpm',
+    },
+    {
+      type: 'list',
+      name: 'bundler',
+      message: 'Bundler:',
+      choices: ['vite', 'webpack'],
+      default: options.bundler || 'vite',
+      when: (answers) => answers.template === 'react-admin',
+    },
+    {
+      type: 'list',
+      name: 'mode',
+      message: 'Project mode:',
+      choices: [
+        { name: 'Single app', value: 'single' },
+        { name: 'Multi-project workspace', value: 'multi' },
+        { name: 'Microfrontend host + remote', value: 'microfrontend' },
+      ],
+      default: options.mode || 'single',
+    },
+    {
+      type: 'confirm',
+      name: 'wui',
+      message: 'Install @w.ui/wui-react?',
+      default: Boolean(options.wui),
+      when: (answers) => answers.template === 'react-admin',
+    },
+    {
+      type: 'confirm',
+      name: 'install',
+      message: 'Install dependencies now?',
+      default: Boolean(options.install),
+      when: (answers) => !answers.wui,
+    },
+  ]);
+  return {
+    name: actualName,
+    options: {
+      ...normalizeOptions({ ...options, ...answer }),
+      template: answer.template,
+    },
+  };
+}
+
+function nextStep(name, options) {
+  return `Next: cd ${name} && ${options.install ? `${options.packageManager} run dev` : `${options.packageManager} install && ${options.packageManager} run dev`}`;
+}
+
+export async function run(argv = process.argv) {
   const program = new Command();
-
   program
     .name('baize')
     .description(packageJson.description)
-    .version(packageJson.version, '-v, --version', 'output the current version')
-    .helpOption('-h, --help', 'display help for command');
+    .version(packageJson.version, '-v, --version');
 
   program
-    .command('init')
-    .description('Initialize a new project')
-    .action(async () => {
-      await initProject();
+    .command('create')
+    .alias('init')
+    .description('Create a project from a bundled template')
+    .argument('[name]', 'project directory name')
+    .option('-t, --template <name>', 'react-admin or vue-admin', 'react-admin')
+    .option('--title <title>', 'project display name')
+    .option('--install', 'install dependencies after creation')
+    .option('--package-manager <name>', 'npm or pnpm', 'pnpm')
+    .option('--bundler <name>', 'vite or webpack', 'vite')
+    .option('--mode <name>', 'single, multi, or microfrontend', 'single')
+    .option('--wui', 'include and install @w.ui/wui-react')
+    .action(async (name, options) => {
+      const input = await creationInput(name, options);
+      const target = createProject(input.name, {
+        ...options,
+        ...input.options,
+      });
+      logger.success(`Created ${target}`);
+      logger.info(nextStep(input.name, input.options));
     });
 
-  // 如果没有参数，默认执行 init
-  if (process.argv.length === 2) {
-    await initProject();
-  } else {
-    program.parse(process.argv);
-  }
-}
+  const add = program
+    .command('add')
+    .description('Add a feature to a Baize project');
+  add
+    .command('page')
+    .description('Add a page and navigation entry')
+    .argument('<slug>', 'lowercase URL segment, for example reports')
+    .option('--title <title>', 'navigation and page title')
+    .option('--project <name>', 'workspace app name')
+    .action((slug, options) => {
+      const file = addPage(slug, options);
+      logger.success(`Created ${file}`);
+    });
 
-async function initProject() {
-  logger.info('Welcome to Baize CLI!');
+  program
+    .command('list')
+    .description('List available templates')
+    .action(() => {
+      for (const template of listTemplates())
+        console.log(`${template.name}  ${template.description}`);
+    });
+
+  program
+    .command('doctor')
+    .description('Check local prerequisites')
+    .action(() => {
+      const report = inspectEnvironment();
+      for (const item of report.items)
+        logger[item.ok ? 'success' : 'warning'](`${item.name}: ${item.detail}`);
+      if (!report.ok) process.exitCode = 1;
+    });
+
+  program.action(async () => {
+    const input = await creationInput();
+    const target = createProject(input.name, input.options);
+    logger.success(`Created ${target}`);
+    logger.info(nextStep(input.name, input.options));
+  });
+
+  add
+    .command('project')
+    .description('Add an app to a multi-project workspace')
+    .argument('<slug>', 'lowercase app name')
+    .option('--title <title>', 'app display name')
+    .action((slug, options) => {
+      const directory = addProject(slug, options);
+      logger.success(`Created ${directory}`);
+      logger.info('Run your package manager install at the workspace root.');
+    });
 
   try {
-    const answers = await inquirer.prompt(questions);
-    const { projectName, framework } = answers;
-    const repoUrl = getRepoUrl(framework);
-
-    if (!repoUrl) {
-      logger.error(`Framework ${framework} is not supported yet.`);
-      process.exit(1);
-    }
-
-    logger.info(`Initializing project ${projectName} with ${framework}...`);
-    
-    if (!shell.which('git')) {
-      logger.error('Sorry, this script requires git');
-      process.exit(1);
-    }
-
-    // Clone
-    logger.info(`Cloning from ${repoUrl}...`);
-    if (shell.exec(`git clone ${repoUrl} ${projectName}`).code !== 0) {
-      logger.error('Error: Git clone failed');
-      process.exit(1);
-    }
-
-    const projectPath = path.join(process.cwd(), projectName);
-    shell.cd(projectPath);
-
-    // Remove .git
-    shell.rm('-rf', '.git');
-
-    // Install dependencies
-    logger.info('Installing dependencies...');
-    if (shell.exec('npm install').code !== 0) {
-      logger.error('Error: npm install failed');
-      process.exit(1);
-    }
-
-    logger.success(`Successfully created project ${projectName}!`);
-    logger.info(`\ncd ${projectName}\nnpm run dev`);
-
+    await program.parseAsync(argv);
   } catch (error) {
-    logger.error('An error occurred: ' + error.message);
-    process.exit(1);
+    logger.error(error.message);
+    process.exitCode = 1;
   }
 }
